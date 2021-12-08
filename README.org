@@ -31,7 +31,6 @@ ways to use taCTF, listed below.
 
 *** Simple Example
 
- #+HTML: <img src="./images/adv.png" align="left" width="300">
 The examples are in the =test= directory.
 
 
@@ -54,6 +53,7 @@ it to:
   ./tactf.py ./a.out -v -f sigpwny{ -l 13
 #+END_SRC
 
+#+HTML: <img src="./images/adv.png" align="left" width="300">
 Sometimes, we can guess the character set to reduce its size. In this
 case, we known the restriction is lowercase letters, so:
 #+BEGIN_SRC sh
