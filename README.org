@@ -1,8 +1,79 @@
 * taCTF
 
-taCTF is a side-channel timing attack tool for binaries that expect a
-string input and compare it to a stored "secret" string: i.e., they
-use an insecure string compare [[https://en.wikipedia.org/wiki/Timing_attack#Algorithm][of the form]]:
+taCTF is a side-channel timing attack tool that uses [[https://valgrind.org/][Valgrind]]. It
+reverses binaries that expect a string input and compare it to a
+stored "secret" string by counting instructions.
+
+** Requirements
+
+Python 3, Valgrind. No additional modules.
+
+** Usage
+
+#+BEGIN_SRC sh
+  ./tactf.py binaryname -v
+#+END_SRC
+
+=-v= makes the output verbose (recommended). There are more complex
+ways to use taCTF, listed below.
+
+*** Arguments
+| Argument | Long Form       | Function                                    | Default |
+|----------+-----------------+---------------------------------------------+---------|
+| =-v=     | =--verbose=     | Verbose output, with each iteration printed | False   |
+| =-r=     | =--reverse=     | Try string backwards.                       | False   |
+| =-f=     | =--flag-format= | Known flag format to try.                   | -       |
+| =-l=     | =--length=      | Length if known.                            | -       |
+| =-c=     | =--charset=     | Which ASCII character 'set' to try.         | 0       |
+| =-ml=    | =--max-length=  | Maximum length to check till.               | 35      |
+
+*** Examples
+
+The examples are in the =test= directory.
+
+**** Basic =example.c=
+
+=gcc example.c= to get =a.out=. Then, first try:
+#+BEGIN_SRC sh
+  ./tactf.py ./a.out
+#+END_SRC
+
+To make output verbose:
+#+BEGIN_SRC sh
+  ./tactf.py ./a.out -v
+#+END_SRC
+
+If we knew the flag format in advance, we can save some time:
+#+BEGIN_SRC sh
+  ./tactf.py ./a.out -v -f sigpwny{
+#+END_SRC
+
+If we knew the length in advance as well, taCTF will use what we ask
+it to:
+#+BEGIN_SRC sh
+  ./tactf.py ./a.out -v -f sigpwny{ -l 13
+#+END_SRC
+
+
+** Errors
+
+If you get =Length guess: -1=, Valgrind is probably not installed, or
+isn't on your =$PATH=. Install it with:
+#+BEGIN_SRC sh
+  sudo apt install valgrind
+  sudo pacman -S valgrind
+#+END_SRC
+Depending on your distribution.
+
+
+** Why not [[https://github.com/ChrisTheCoolHut/PinCTF][PinCTF]]?
+
+Installing Intel PIN is a pain, and running it even more so. I could
+never get PIN working reliably on anything but an Ubuntu VM, so this
+is a PinCTF equivalent written for Valgrind.
+
+** When Does it Work?
+Binaries that use an insecure string compare [[https://en.wikipedia.org/wiki/Timing_attack#Algorithm][of the form]]:
 
 #+BEGIN_SRC c
   bool insecureStringCompare(const void *a, const void *b, size_t length) {
@@ -14,47 +85,6 @@ use an insecure string compare [[https://en.wikipedia.org/wiki/Timing_attack#Alg
   }
 #+END_SRC
 
-The side channel (instruction counting) is done using =valgrind='s
-=callgrind= tool.
-
-** Requirements
-
-Python 3, Valgrind. No additional modules.
-
-** Usage
-
-#+BEGIN_SRC sh
-  ./tactf binaryname -v
-#+END_SRC
-
-=-v= makes the output verbose (recommended). There are more complex
-ways to use taCTF, listed below.
-
-*** Arguments
-| Argument | Long Form       | Function                                    |
-|----------+-----------------+---------------------------------------------|
-| =-v=     | =--verbose=     | Verbose output, with each iteration printed |
-| =-r=     | =--reverse=     | Try string backwards                        |
-| =-f=     | =--flag-format= | Known flag format to try                    |
-| =-l=     | =--length=      | Length to check till (normally auto)        |
-| =-c=     | =--charset=     | Which ASCII character 'set' to try.         |
-
-*** Examples
-
-The examples are in the =test= directory.
-
-**** Basic =example.c=
-
-=gcc example.c= to get =a.out=. Then, first try:
-#+BEGIN_SRC sh
-  ./tactf
-#+END_SRC
-
-** Why not [[https://github.com/ChrisTheCoolHut/PinCTF][PinCTF]]?
-
-Installing Intel PIN is a pain, and running it even more so. I could
-never get PIN working reliably, so this is a PinCTF equivalent written
-for Valgrind.
 
 ** TODO
 - Add some stats stuff to compute mean, see deviation, etc. to decide

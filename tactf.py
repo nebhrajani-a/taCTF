@@ -35,8 +35,8 @@ def get_charset(code):
 
 def get_instruction_count(test_str, binary_filename):
     with tempfile.NamedTemporaryFile() as tmp:
-        command = f"valgrind --tool=callgrind --callgrind-out-file={tmp.name}\
-        {binary_filename} <<< {test_str}"
+        command = f'echo "{test_str}" | valgrind --tool=callgrind --callgrind-out-file={tmp.name}\
+        {binary_filename}'
         try:
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE) as valout:
