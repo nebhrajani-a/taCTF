@@ -1,0 +1,479 @@
+% Created 2021-12-08 Wed 06:44
+% Intended LaTeX compiler: xelatex
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage[top=1.0in,bottom=1.0in,left=0.75in,right=0.75in]{geometry}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{minted}
+\author{Project By\\ Aditya Nebhrajani\\ \texttt{avn5} \and Overseen By\\ Thomas Quig\\ \and Submitted To\\ Professor Miller}
+\usepackage{parskip}
+\usepackage[backend=bibtex, style=nature]{biblatex}
+\addbibresource{report.bib}
+\setminted{linenos=true, breaklines=true, breakanywhere=true}
+\date{Fall 2021}
+\title{SIGPwny ECE 297 Project}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={SIGPwny ECE 297 Project},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 27.2 (Org mode 9.5)},
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\begin{center}
+\href{https://github.com/nebhrajani-a/taCTF}{\texttt{https://github.com/nebhrajani-a/taCTF}}
+\end{center}
+
+\section{Abstract}
+\label{sec:org103e7b8}
+This report describes an ``automatic'' tool for implementing
+a side-channel timing-style attack on compiled binaries. Timing
+attacks are often difficult to design around, especially since it may
+cause poorer performance. Timing attacks are among the most successful
+forms of side-channel attack, with Meltdown\cite{meltdown} and
+Spectre\cite{spectre} as recent examples, and initial implementations
+of Unix \texttt{login} as classical examples. The tool described by this
+report specifically focuses on a simpler kind of side channel: it uses
+Valgrind to count the number of instructions executed by a string
+comparison function for various inputs, and uses the result to predict
+the string.
+
+\section{Background}
+\label{sec:org1fb8b14}
+
+\subsection{Problem Statement}
+\label{sec:org9ac5ad5}
+String comparison is a basic operation in many cryptographic
+applications. Consider a C function written the following way\cite{wiki}:
+
+\begin{minted}[]{c}
+ bool insecureStringCompare(const void *a, const void *b, size_t length) {
+  const char *ca = a, *cb = b;
+  for (size_t i = 0; i < length; i++)
+    if (ca[i] != cb[i])
+      return false;
+  return true;
+}
+\end{minted}
+
+When input strings \texttt{a} and \texttt{b} are identical, all is well. However, if
+the strings differ at any character, the function instantly returns,
+breaking the \mintinline{c}{for} loop. This makes sense for
+efficiency, since we're not wasting time checking the equivalence of
+two strings that are obviously unequal. However, this gives us a way to
+``brute-force'' one of the strings if the other is held constant: we can
+simply try every ASCII character, and if the \mintinline{c}{for}
+loop isn't broken, the current character must be the correct one.
+
+Of course, the natural question is, how can we tell from the execution
+of a binary file whether the \mintinline{c}{for} loop has been
+terminated or not? This is done by counting the number of assembly
+instructions executed: more instructions would imply that the
+function did not terminate: so we must have the right character.
+
+Preventing such an attack requires that the function check both
+strings all the way through, regardless of whether they stop matching
+at a certain character. A patched function is thus:
+
+\begin{minted}[]{c}
+ bool constantTimeStringCompare(const void *a, const void *b, size_t length) {
+  const char *ca = a, *cb = b;
+  bool result = true;
+  for (size_t i = 0; i < length; i++)
+    result &= ca[i] == cb[i];
+  return result;
+}
+\end{minted}
+
+This entirely removes our side channel. Another way that timing
+attacks are prevented is by making the program sleep for small amounts
+of time, or perform some other operations. This throws off any tools
+like ours.
+
+\subsection{Current Tools}
+\label{sec:orgf2c33a1}
+Given that such a vulnerability is popular among CTF-style reverse
+engineering challenges, a tool similar in function to the one we detail
+does exist: PinCTF\cite{pinctf}. However, it uses Intel's PIN to count
+instructions rather than Valgrind. Intel PIN is notoriously difficult
+to install and get working, and has a habit of littering any directory
+it's called in with \texttt{inscount.out} files that need to be removed. The
+author of this paper could only install PIN on a Garuda Linux virtual
+machine, but PinCTF still did not run correctly; which is much more
+PIN's fault than the tool's. PinCTF's open GitHub issues are also a
+result of PIN's weird behavior. Moreover, our tool's functionality is
+a superset of PinCTF's, with automatic length computation and more
+options.
+
+In essence, there's a need for a better instruction counting tool
+that's plug and play. Valgrind is an excellent instrumentation
+framework, and its tool \texttt{callgrind} has an instruction counting
+function built-in.\footnote{The tool \texttt{exp-bbv} also has an instruction counting function
+built in, but it is ``experimental'' and so we choose to stick with
+\texttt{callgrind}.} From testing with multiple binaries, it seems that
+this is equally as useful for our purposes as Intel's PIN. While the
+absolute value of instructions counted differs between Valgrind and
+PIN, the deltas, which are what we care about, agree.
+
+Our tool is called ``taCTF'' (pronounced either ``ta-CTF'' or with each
+letter said out loud). The language chosen is Python. Haskell was
+considered\footnote{Obligatory ``A monad is just is a monoid in the category of endofunctors'' quote.}, but ultimately dropped due to considerations of ease of
+contribution.
+
+The goal while writing this tool was that there should be no
+\texttt{requirements.txt} or \emph{any} environment setup required beyond
+installing Python 3 and Valgrind (which can be done in a single
+command on any good Linux distributions.\footnote{Looking at you, Gentoo.}), and running the
+script. We also try to provide some options that make life easier when
+doing attacks of this sort, such as reverse-order attacking, known
+string prefixes, etc.
+
+\section{Methodology}
+\label{sec:org791caae}
+
+Our job is to run Valgrind's \texttt{callgrind} on the binary with various
+inputs, parse the output for the instruction count, then use the
+instruction count data to reconstruct the string.
+
+\subsection{Parsing \texttt{callgrind} output}
+\label{sec:org1f8a2a4}
+
+First, let's look at how \texttt{callgrind} counts instructions:
+
+\begin{minted}[]{text}
+$ valgrind --tool=callgrind ./a.out
+==43837== Callgrind, a call-graph generating cache profiler
+==43837== Copyright (C) 2002-2017, and GNU GPL'd, by Josef Weidendorfer et al.
+==43837== Using Valgrind-3.17.0 and LibVEX; rerun with -h for copyright info
+==43837== Command: ./a.out
+==43837==
+==43837== For interactive control, run 'callgrind_control -h'.
+==43837==
+==43837== Events    : Ir
+==43837== Collected : 161590
+==43837==
+==43837== I   refs:      161,590
+\end{minted}
+
+\texttt{Collected : 161590} is the information we need. We can grab it with a
+simple regular expression. Also, we'll use Python's \texttt{subprocess}
+module (built-in) to call Valgrind:
+\begin{minted}[]{python}
+def get_instruction_count(test_str, binary_filename):
+    with tempfile.NamedTemporaryFile() as tmp:
+        command = f'echo "{test_str}" | valgrind --tool=callgrind --callgrind-out-file={tmp.name}\
+        {binary_filename}'
+        try:
+            with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE) as valout:
+                valout = valout.stderr.read()
+                valout = int(re.findall('Collected : \d+',
+                                        valout.decode())[0][12:])
+                return valout
+        except IndexError:
+            pass
+\end{minted}
+
+Note that we could use a \texttt{stdin PIPE} instead of \texttt{echo}-ing the string
+then piping it via the shell, however, this approach has known bugs in
+\texttt{subprocess}\footnote{The documentation recommends using \texttt{subprocess.communicate()}
+instead, but this author ran out of time and couldn't play with broken
+Python modules. He did add it to the TODO section of the README
+though, so perhaps it'll get done someday when he needs to
+procrastinate.}. We pass \texttt{IndexError}'s in case the instruction
+count isn't found in the output, and the function returns \mintinline{python}{None}.
+
+What's with the temporary file? \texttt{callgrind} writes output files, which
+we don't care about (we care about the output on \texttt{STDERR}), so we just
+ask \texttt{callgrind} to write it to a temporary file the OS will deal with.
+\texttt{tempfile} is also built into Python.
+
+\subsection{Finding the Length}
+\label{sec:org33058d9}
+Assuming the binary instantly quits if the length of the input string
+doesn't match that of the secret string, we can find the length by
+simply trying every length between 1 and some upper limit. By default,
+taCTF sets this upper limit to 35, but it can be changed with a
+command line argument. Consider:
+
+\begin{minted}[]{python}
+def find_length(binary_filename, maxlen, verbose):
+    maximum = -1
+    init_counts = get_instruction_count("a", binary_filename)
+    length = -1
+    for i in range(1, maxlen+1):
+        val = get_instruction_count("a"*i, binary_filename)
+        if verbose:
+            print("a"*i, ":", val)
+        if val is not None:
+            if val > maximum:
+                maximum = val
+                length = i
+    if init_counts != maximum:
+        return length
+\end{minted}
+
+If all the lengths happen to be the same, we return \mintinline{python}{None} and move
+on. Not all binaries have this weakness.
+
+
+\subsection{Finding a Single Character}
+\label{sec:org1076662}
+
+Given a string and an index, we write a function to get the
+instruction count of the string formed by trying character in a given
+set at that index. This is trivial:
+\begin{minted}[]{python}
+def find_char_at(test_str, location, binary_filename, verbose, charset_code):
+    if verbose:
+        print("Testing: ", make_bold(test_str, location), "at", location)
+    charset = get_charset(charset_code)
+    maximum = 0
+    bestchoice = ""
+    for char in charset:
+        test = test_str[:location] + char + test_str[location+1:]
+        val = get_instruction_count(test, binary_filename)
+        if val is not None:
+            if val > maximum:
+                maximum = val
+                bestchoice = test
+        if verbose:
+            print("    ", char, ":", val)
+    return bestchoice
+\end{minted}
+
+Naturally, there are probably cooler ways to choose \texttt{bestchoice}. In
+the future, the author may add some basic standard-deviation style
+statistics to make this choice. For now, a \mintinline{python}{for} loop will suffice.
+
+\subsection{Solve}
+\label{sec:orge12fba0}
+We can finally write a \texttt{find-string} function that solves our problem:
+
+\begin{minted}[]{python}
+def find_string(binary_filename, maxlen=35,
+                verbose=False, reverse=False,
+                lengthgiven=False, length=0,
+                charset_code=0,
+                flag_format=""):
+    if not lengthgiven:
+        length = find_length(binary_filename, maxlen, verbose)
+        if length is None:
+            print("[taCTF] I couldn't guess the length, sorry. Try -l LENGTH.")
+            sys.exit()
+    print("Length guess:", length)
+    length_diff = length - len(flag_format)
+    candidate = flag_format + 'a'*length_diff
+    if not reverse:
+        for i in range(len(flag_format), length):
+            candidate = find_char_at(candidate, i, binary_filename, verbose,
+                                     charset_code)
+            print(candidate)
+    else:
+        for i in range(length-1, len(flag_format)-1, -1):
+            candidate = find_char_at(candidate, i, binary_filename, verbose,
+                                     charset_code)
+            print(candidate)
+    return candidate
+\end{minted}
+
+This function has all the features taCTF has. It simply checks
+whether to find the length or if it's been supplied, then calls
+\texttt{find\_char\_at} in either left-to-right or right-to-left order as many
+times as required.
+
+\subsection{Arguments}
+\label{sec:org4384c6d}
+
+This is the easiest part of the code, and is left as an exercise to
+the reader.\footnote{I've always wanted to do that. If you aren't in an exercise-y
+mood, feel free to look at the code on GitHub.} We instead detail here what our arguments do and how
+to use them:
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Argument & Long Form & Function & Default\\
+\midrule
+\texttt{-h} & \texttt{-{}-help} & Help! & \\
+\texttt{-v} & \texttt{-{}-verbose} & Verbose output, with each iteration printed & False\\
+\texttt{-r} & \texttt{-{}-reverse} & Try string backwards. & False\\
+\texttt{-f} & \texttt{-{}-flag-format} & Known flag format to try. & \\
+\texttt{-l} & \texttt{-{}-length} & Length if known. & \\
+\texttt{-c} & \texttt{-{}-charset} & Which ASCII character 'set' to try. & 0\\
+\texttt{-ml} & \texttt{-{}-max-length} & Maximum length to check till. & 35\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+We also detail our character codes:
+\begin{center}
+\begin{tabular}{rl}
+\toprule
+Code & Meaning\\
+\midrule
+0 & Lowercase, uppercase, digits\\
+1 & Lowercase\\
+2 & Uppercase\\
+3 & Lowercase, uppercase\\
+4 & Lowercase, digits\\
+\bottomrule
+\end{tabular}
+\end{center}
+Punctuation is included by default in all sets.
+
+\section{Results}
+\label{sec:org1c71763}
+
+Our goal of making the tool as painless to use as possible\footnote{Finally, we're rid of PIN!} seems to have
+succeeded. Let's write a weak C program that has the vulnerability:
+
+\begin{minted}[]{c}
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+#define MAX_INPUT_LEN 100
+
+bool insecure_string_compare(const void *a, const void *b, size_t length) {
+  const char *ca = a, *cb = b;
+  for (size_t i = 0; i < length; i++)
+    if (ca[i] != cb[i])
+      return false;
+  return true;
+}
+
+int main(void)
+{
+  char flag[] = "sigpwny{flag}";
+  char input[MAX_INPUT_LEN];
+  fgets(input, MAX_INPUT_LEN, stdin);
+
+  if ((strlen(input) - 1) != strlen(flag)) {
+    return 0;
+  }
+  else {
+    insecure_string_compare(flag, input, strlen(flag));
+  }
+
+  return 0;
+}
+\end{minted}
+
+On a sandbox (Arch) Linux machine, all we need to do is:
+\begin{minted}[]{text}
+$ sudo pacman -S python3 valgrind
+$ git clone https://github.com/nebhrajani-a/taCTF
+$ cd taCTF
+$ gcc test/example.c
+$ ./tactf.py ./a.out
+\end{minted}
+
+The output is:
+
+\begin{minted}[]{text}
+Length guess: 13
+saaaaaaaaaaaa
+siaaaaaaaaaaa
+sigaaaaaaaaaa
+sigpaaaaaaaaa
+sigpwaaaaaaaa
+sigpwnaaaaaaa
+sigpwnyaaaaaa
+sigpwny{aaaaa
+sigpwny{faaaa
+sigpwny{flaaa
+sigpwny{flaaa
+sigpwny{flaga
+sigpwny{flag}
+\end{minted}
+
+Maybe with some more options:
+
+\begin{minted}[]{text}
+$ ./tactf.py ./a.out --flag-format "sigpwny{" -l 13 -c 1
+Length guess: 13
+sigpwny{faaaa
+sigpwny{flaaa
+sigpwny{flaaa
+sigpwny{flaga
+sigpwny{flag}
+\end{minted}
+
+Let's also try some other binary that checks the string in reverse
+order:
+
+\begin{minted}[]{text}
+$ ./tactf.py test/ELF-NoSoftwareBreakpoints -r -l 25
+Length guess: 25
+aaaaaaaaaaaaaaaaaaaaaaaaS
+aaaaaaaaaaaaaaaaaaaaaaakS
+aaaaaaaaaaaaaaaaaaaaaackS
+aaaaaaaaaaaaaaaaaaaaa0ckS
+aaaaaaaaaaaaaaaaaaaar0ckS
+aaaaaaaaaaaaaaaaaaa_r0ckS
+aaaaaaaaaaaaaaaaaaT_r0ckS
+aaaaaaaaaaaaaaaaaNT_r0ckS
+aaaaaaaaaaaaaaaaiNT_r0ckS
+aaaaaaaaaaaaaaaoiNT_r0ckS
+aaaaaaaaaaaaaaPoiNT_r0ckS
+aaaaaaaaaaaaakPoiNT_r0ckS
+aaaaaaaaaaaaakPoiNT_r0ckS
+aaaaaaaaaaa3akPoiNT_r0ckS
+aaaaaaaaaar3akPoiNT_r0ckS
+aaaaaaaaaBr3akPoiNT_r0ckS
+aaaaaaaa_Br3akPoiNT_r0ckS
+aaaaaaae_Br3akPoiNT_r0ckS
+aaaaaare_Br3akPoiNT_r0ckS
+aaaaa@re_Br3akPoiNT_r0ckS
+aaaaW@re_Br3akPoiNT_r0ckS
+aaadW@re_Br3akPoiNT_r0ckS
+aardW@re_Br3akPoiNT_r0ckS
+aardW@re_Br3akPoiNT_r0ckS
+HardW@re_Br3akPoiNT_r0ckS
+\end{minted}
+
+
+
+\section{Conclusion}
+\label{sec:org8c39a4a}
+
+We've achieved our goal: writing a clean and easy to use instruction
+counting tool. There are more features I'd like to add, and at the top
+of the list is threading. This, however, is a rather complex endeavor
+with diminishing returns, given how Python's global interpreter lock
+works. There is perhaps a solution using asynchronous I/O that I'm
+currently exploring, and may add. Other things to add include:
+\begin{itemize}
+\item Better statistics for deciding which letter to choose.
+\item Treat program's movement as a tree and allow going back up the tree
+and branching in case instruction counts are all equal after a
+certain choice.
+\item Add PIN support. Yes, PIN is difficult to use, but having support
+for PIN gives us another tool to confirm Valgrind's results with.
+\item Use \texttt{subprocess.communicate} instead of \texttt{echo} to talk to Valgrind.
+This will allow punctuation characters that are currently blocked
+due to \texttt{echo}'s limitations and escape character pain.
+\end{itemize}
+
+I had a lot of fun writing this small and simple tool, and hopefully
+you had as much going through this report. Any suggestions, issues,
+comments, are welcome on the GitHub issues tracker of this project.\footnote{AKA, please, tear apart my code.}
+
+
+\newpage
+\printbibliography
+\end{document}

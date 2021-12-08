@@ -1,6 +1,6 @@
 * taCTF
 
-taCTF (tact-F) is a side-channel timing attack tool that uses [[https://valgrind.org/][Valgrind]]. It
+taCTF ("ta-CTF") is a side-channel timing attack tool that uses [[https://valgrind.org/][Valgrind]]. It
 reverses binaries that expect a string input and compare it to a
 stored "secret" string by counting instructions.
 
@@ -25,8 +25,8 @@ ways to use taCTF, listed below.
 | =-h=     | =--help=        | Help!                                       |         |
 | =-v=     | =--verbose=     | Verbose output, with each iteration printed | False   |
 | =-r=     | =--reverse=     | Try string backwards.                       | False   |
-| =-f=     | =--flag-format= | Known flag format to try.                   | -       |
-| =-l=     | =--length=      | Length if known.                            | -       |
+| =-f=     | =--flag-format= | Known flag format to try.                   |         |
+| =-l=     | =--length=      | Length if known.                            |         |
 | =-c=     | =--charset=     | Which ASCII character 'set' to try.         | 0       |
 | =-ml=    | =--max-length=  | Maximum length to check till.               | 35      |
 
