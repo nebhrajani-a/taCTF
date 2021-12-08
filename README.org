@@ -17,9 +17,11 @@ Python 3, Valgrind. No additional modules.
 =-v= makes the output verbose (recommended). There are more complex
 ways to use taCTF, listed below.
 
+ #+HTML: <img src="./images/elf.png" align="right" width="300">
 *** Arguments
 | Argument | Long Form       | Function                                    | Default |
 |----------+-----------------+---------------------------------------------+---------|
+| =-h=     | =--help=        | Help!                                       |         |
 | =-v=     | =--verbose=     | Verbose output, with each iteration printed | False   |
 | =-r=     | =--reverse=     | Try string backwards.                       | False   |
 | =-f=     | =--flag-format= | Known flag format to try.                   | -       |
@@ -27,32 +29,50 @@ ways to use taCTF, listed below.
 | =-c=     | =--charset=     | Which ASCII character 'set' to try.         | 0       |
 | =-ml=    | =--max-length=  | Maximum length to check till.               | 35      |
 
-*** Examples
+*** Simple Example
 
 The examples are in the =test= directory.
 
-**** Basic =example.c=
 
-=gcc example.c= to get =a.out=. Then, first try:
-#+BEGIN_SRC sh
-  ./tactf.py ./a.out
-#+END_SRC
-
-To make output verbose:
+=gcc test/example.c= to get =a.out=. Then, first try:
 #+BEGIN_SRC sh
   ./tactf.py ./a.out -v
 #+END_SRC
 
-If we knew the flag format in advance, we can save some time:
+If we know the flag format in advance, we can save some time:
 #+BEGIN_SRC sh
   ./tactf.py ./a.out -v -f sigpwny{
 #+END_SRC
 
-If we knew the length in advance as well, taCTF will use what we ask
+If we know the length in advance as well, taCTF will use what we ask
 it to:
 #+BEGIN_SRC sh
   ./tactf.py ./a.out -v -f sigpwny{ -l 13
 #+END_SRC
+
+Sometimes, we can guess the character set to reduce its size. In this
+case, we known the restriction is lowercase letters, so:
+#+BEGIN_SRC sh
+  ./tactf.py ./a.out -v -f sigpwny{ -l 13 -c 1
+#+END_SRC
+
+*** Reverse Example: ELF-NoSoftwareBreakpoints
+
+#+BEGIN_SRC sh
+  ./tactf.py test/ELF-NoSoftwareBreakpoints -r -l 25
+#+END_SRC
+
+
+*** Character Set Codes
+
+Punctuation is included by default in all sets.
+| Code | Meaning                      |
+|------+------------------------------|
+|    0 | Lowercase, uppercase, digits |
+|    1 | Lowercase                    |
+|    2 | Uppercase                    |
+|    3 | Lowercase, uppercase         |
+|    4 | Lowercase, digits            |
 
 
 ** Errors
