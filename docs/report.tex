@@ -1,4 +1,4 @@
-% Created 2021-12-08 Wed 06:44
+% Created 2021-12-08 Wed 06:51
 % Intended LaTeX compiler: xelatex
 \documentclass[11pt]{article}
 \usepackage{graphicx}
@@ -38,7 +38,7 @@
 \end{center}
 
 \section{Abstract}
-\label{sec:org103e7b8}
+\label{sec:orgcff712d}
 This report describes an ``automatic'' tool for implementing
 a side-channel timing-style attack on compiled binaries. Timing
 attacks are often difficult to design around, especially since it may
@@ -52,10 +52,10 @@ comparison function for various inputs, and uses the result to predict
 the string.
 
 \section{Background}
-\label{sec:org1fb8b14}
+\label{sec:org5658d86}
 
 \subsection{Problem Statement}
-\label{sec:org9ac5ad5}
+\label{sec:orgc8b589f}
 String comparison is a basic operation in many cryptographic
 applications. Consider a C function written the following way\cite{wiki}:
 
@@ -99,12 +99,12 @@ at a certain character. A patched function is thus:
 \end{minted}
 
 This entirely removes our side channel. Another way that timing
-attacks are prevented is by making the program sleep for small amounts
-of time, or perform some other operations. This throws off any tools
-like ours.
+attacks are prevented is by making the program sleep for small and
+random amounts of time, or perform some other random operations. This
+throws off any tools like ours.
 
 \subsection{Current Tools}
-\label{sec:orgf2c33a1}
+\label{sec:org8a98135}
 Given that such a vulnerability is popular among CTF-style reverse
 engineering challenges, a tool similar in function to the one we detail
 does exist: PinCTF\cite{pinctf}. However, it uses Intel's PIN to count
@@ -142,14 +142,14 @@ doing attacks of this sort, such as reverse-order attacking, known
 string prefixes, etc.
 
 \section{Methodology}
-\label{sec:org791caae}
+\label{sec:org186d130}
 
 Our job is to run Valgrind's \texttt{callgrind} on the binary with various
 inputs, parse the output for the instruction count, then use the
 instruction count data to reconstruct the string.
 
 \subsection{Parsing \texttt{callgrind} output}
-\label{sec:org1f8a2a4}
+\label{sec:orgac3a7b6}
 
 First, let's look at how \texttt{callgrind} counts instructions:
 
@@ -202,7 +202,7 @@ ask \texttt{callgrind} to write it to a temporary file the OS will deal with.
 \texttt{tempfile} is also built into Python.
 
 \subsection{Finding the Length}
-\label{sec:org33058d9}
+\label{sec:org6647785}
 Assuming the binary instantly quits if the length of the input string
 doesn't match that of the secret string, we can find the length by
 simply trying every length between 1 and some upper limit. By default,
@@ -231,7 +231,7 @@ on. Not all binaries have this weakness.
 
 
 \subsection{Finding a Single Character}
-\label{sec:org1076662}
+\label{sec:org5e0be7f}
 
 Given a string and an index, we write a function to get the
 instruction count of the string formed by trying character in a given
@@ -260,7 +260,7 @@ the future, the author may add some basic standard-deviation style
 statistics to make this choice. For now, a \mintinline{python}{for} loop will suffice.
 
 \subsection{Solve}
-\label{sec:orge12fba0}
+\label{sec:org0775b2e}
 We can finally write a \texttt{find-string} function that solves our problem:
 
 \begin{minted}[]{python}
@@ -296,7 +296,7 @@ whether to find the length or if it's been supplied, then calls
 times as required.
 
 \subsection{Arguments}
-\label{sec:org4384c6d}
+\label{sec:org0fe121e}
 
 This is the easiest part of the code, and is left as an exercise to
 the reader.\footnote{I've always wanted to do that. If you aren't in an exercise-y
@@ -336,7 +336,7 @@ Code & Meaning\\
 Punctuation is included by default in all sets.
 
 \section{Results}
-\label{sec:org1c71763}
+\label{sec:org7ea29b7}
 
 Our goal of making the tool as painless to use as possible\footnote{Finally, we're rid of PIN!} seems to have
 succeeded. Let's write a weak C program that has the vulnerability:
@@ -449,7 +449,7 @@ HardW@re_Br3akPoiNT_r0ckS
 
 
 \section{Conclusion}
-\label{sec:org8c39a4a}
+\label{sec:orgf574fb1}
 
 We've achieved our goal: writing a clean and easy to use instruction
 counting tool. There are more features I'd like to add, and at the top

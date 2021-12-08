@@ -71,9 +71,9 @@ at a certain character. A patched function is thus:
 #+END_SRC
 
 This entirely removes our side channel. Another way that timing
-attacks are prevented is by making the program sleep for small amounts
-of time, or perform some other operations. This throws off any tools
-like ours.
+attacks are prevented is by making the program sleep for small and
+random amounts of time, or perform some other random operations. This
+throws off any tools like ours.
 
 ** Current Tools
 Given that such a vulnerability is popular among CTF-style reverse
