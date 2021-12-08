@@ -1,6 +1,36 @@
-* Outline
+* taCTF
 
-** Arguments
+taCTF is a side-channel timing attack tool for binaries that expect a
+string input and compare it to a stored "secret" string: i.e., they
+use an insecure string compare [[https://en.wikipedia.org/wiki/Timing_attack#Algorithm][of the form]]:
+
+#+BEGIN_SRC c
+  bool insecureStringCompare(const void *a, const void *b, size_t length) {
+    const char *ca = a, *cb = b;
+    for (size_t i = 0; i < length; i++)
+      if (ca[i] != cb[i])
+        return false;
+    return true;
+  }
+#+END_SRC
+
+The side channel (instruction counting) is done using =valgrind='s
+=callgrind= tool.
+
+** Requirements
+
+Python 3, Valgrind. No additional modules.
+
+** Usage
+
+#+BEGIN_SRC sh
+  ./tactf binaryname -v
+#+END_SRC
+
+=-v= makes the output verbose (recommended). There are more complex
+ways to use taCTF, listed below.
+
+*** Arguments
 | Argument | Long Form       | Function                                    |
 |----------+-----------------+---------------------------------------------|
 | =-v=     | =--verbose=     | Verbose output, with each iteration printed |
@@ -9,7 +39,24 @@
 | =-l=     | =--length=      | Length to check till (normally auto)        |
 | =-c=     | =--charset=     | Which ASCII character 'set' to try.         |
 
-** Features
+*** Examples
+
+The examples are in the =test= directory.
+
+**** Basic =example.c=
+
+=gcc example.c= to get =a.out=. Then, first try:
+#+BEGIN_SRC sh
+  ./tactf
+#+END_SRC
+
+** Why not [[https://github.com/ChrisTheCoolHut/PinCTF][PinCTF]]?
+
+Installing Intel PIN is a pain, and running it even more so. I could
+never get PIN working reliably, so this is a PinCTF equivalent written
+for Valgrind.
+
+** TODO
 - Add some stats stuff to compute mean, see deviation, etc. to decide
   on best value to use in case instruction counts are close
 - Feature to (=--all=) compare valgrind and PIN counting: deal with
