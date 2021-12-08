@@ -31,6 +31,7 @@ ways to use taCTF, listed below.
 
 *** Simple Example
 
+ #+HTML: <img src="./images/adv.png" align="right" width="300">
 The examples are in the =test= directory.
 
 
@@ -38,6 +39,9 @@ The examples are in the =test= directory.
 #+BEGIN_SRC sh
   ./tactf.py ./a.out -v
 #+END_SRC
+
+taCTF first tries to figure out the length by counting instructions.
+It then bruteforces the string character by character, left to right.
 
 If we know the flag format in advance, we can save some time:
 #+BEGIN_SRC sh
@@ -58,10 +62,11 @@ case, we known the restriction is lowercase letters, so:
 
 *** Reverse Example: ELF-NoSoftwareBreakpoints
 
+To bruteforce the string right to left:
+
 #+BEGIN_SRC sh
   ./tactf.py test/ELF-NoSoftwareBreakpoints -r -l 25
 #+END_SRC
-
 
 *** Character Set Codes
 
