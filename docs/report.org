@@ -97,7 +97,7 @@ this is equally as useful for our purposes as Intel's PIN. While the
 absolute value of instructions counted differs between Valgrind and
 PIN, the deltas, which are what we care about, agree.
 
-Our tool is called "taCTF" (pronounced either "ta-CTF" or with each
+Our tool is called "taCTF" (pronounced either "tā-CTF" or with each
 letter said out loud). The language chosen is Python. Haskell was
 considered[fn:2], but ultimately dropped due to considerations of ease of
 contribution.

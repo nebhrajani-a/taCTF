@@ -1,4 +1,4 @@
-% Created 2021-12-08 Wed 06:51
+% Created 2021-12-08 Wed 06:52
 % Intended LaTeX compiler: xelatex
 \documentclass[11pt]{article}
 \usepackage{graphicx}
@@ -38,7 +38,7 @@
 \end{center}
 
 \section{Abstract}
-\label{sec:orgcff712d}
+\label{sec:org0c1218f}
 This report describes an ``automatic'' tool for implementing
 a side-channel timing-style attack on compiled binaries. Timing
 attacks are often difficult to design around, especially since it may
@@ -52,10 +52,10 @@ comparison function for various inputs, and uses the result to predict
 the string.
 
 \section{Background}
-\label{sec:org5658d86}
+\label{sec:org009ae9b}
 
 \subsection{Problem Statement}
-\label{sec:orgc8b589f}
+\label{sec:org99a5cc6}
 String comparison is a basic operation in many cryptographic
 applications. Consider a C function written the following way\cite{wiki}:
 
@@ -104,7 +104,7 @@ random amounts of time, or perform some other random operations. This
 throws off any tools like ours.
 
 \subsection{Current Tools}
-\label{sec:org8a98135}
+\label{sec:org0efb554}
 Given that such a vulnerability is popular among CTF-style reverse
 engineering challenges, a tool similar in function to the one we detail
 does exist: PinCTF\cite{pinctf}. However, it uses Intel's PIN to count
@@ -128,7 +128,7 @@ this is equally as useful for our purposes as Intel's PIN. While the
 absolute value of instructions counted differs between Valgrind and
 PIN, the deltas, which are what we care about, agree.
 
-Our tool is called ``taCTF'' (pronounced either ``ta-CTF'' or with each
+Our tool is called ``taCTF'' (pronounced either ``tā-CTF'' or with each
 letter said out loud). The language chosen is Python. Haskell was
 considered\footnote{Obligatory ``A monad is just is a monoid in the category of endofunctors'' quote.}, but ultimately dropped due to considerations of ease of
 contribution.
@@ -142,14 +142,14 @@ doing attacks of this sort, such as reverse-order attacking, known
 string prefixes, etc.
 
 \section{Methodology}
-\label{sec:org186d130}
+\label{sec:orga7dfff8}
 
 Our job is to run Valgrind's \texttt{callgrind} on the binary with various
 inputs, parse the output for the instruction count, then use the
 instruction count data to reconstruct the string.
 
 \subsection{Parsing \texttt{callgrind} output}
-\label{sec:orgac3a7b6}
+\label{sec:org4aa5f6f}
 
 First, let's look at how \texttt{callgrind} counts instructions:
 
@@ -202,7 +202,7 @@ ask \texttt{callgrind} to write it to a temporary file the OS will deal with.
 \texttt{tempfile} is also built into Python.
 
 \subsection{Finding the Length}
-\label{sec:org6647785}
+\label{sec:org0d007e6}
 Assuming the binary instantly quits if the length of the input string
 doesn't match that of the secret string, we can find the length by
 simply trying every length between 1 and some upper limit. By default,
@@ -231,7 +231,7 @@ on. Not all binaries have this weakness.
 
 
 \subsection{Finding a Single Character}
-\label{sec:org5e0be7f}
+\label{sec:org0da3aed}
 
 Given a string and an index, we write a function to get the
 instruction count of the string formed by trying character in a given
@@ -260,7 +260,7 @@ the future, the author may add some basic standard-deviation style
 statistics to make this choice. For now, a \mintinline{python}{for} loop will suffice.
 
 \subsection{Solve}
-\label{sec:org0775b2e}
+\label{sec:orgef83b60}
 We can finally write a \texttt{find-string} function that solves our problem:
 
 \begin{minted}[]{python}
@@ -296,7 +296,7 @@ whether to find the length or if it's been supplied, then calls
 times as required.
 
 \subsection{Arguments}
-\label{sec:org0fe121e}
+\label{sec:org15354d2}
 
 This is the easiest part of the code, and is left as an exercise to
 the reader.\footnote{I've always wanted to do that. If you aren't in an exercise-y
@@ -336,7 +336,7 @@ Code & Meaning\\
 Punctuation is included by default in all sets.
 
 \section{Results}
-\label{sec:org7ea29b7}
+\label{sec:org3b8c6fd}
 
 Our goal of making the tool as painless to use as possible\footnote{Finally, we're rid of PIN!} seems to have
 succeeded. Let's write a weak C program that has the vulnerability:
@@ -449,7 +449,7 @@ HardW@re_Br3akPoiNT_r0ckS
 
 
 \section{Conclusion}
-\label{sec:orgf574fb1}
+\label{sec:org8be8a81}
 
 We've achieved our goal: writing a clean and easy to use instruction
 counting tool. There are more features I'd like to add, and at the top
