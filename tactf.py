@@ -7,14 +7,6 @@ import subprocess
 import tempfile
 from string import ascii_lowercase, ascii_uppercase, digits, punctuation
 
-not_allowed_chars = ['"', "'", "(", ")", ">", "<", "`", "|", "\\",
-                     "#", ";", "&"]
-punctuation = list(punctuation.strip(" "))
-for char in not_allowed_chars:
-    punctuation.remove(char)
-punctuation = ''.join(punctuation)
-
-
 def make_bold(text, index):
     return text[:index] + '\033[1m' + text[index] + '\033[0m' + text[index+1:]
 
@@ -35,12 +27,15 @@ def get_charset(code):
 
 def get_instruction_count(test_str, binary_filename):
     with tempfile.NamedTemporaryFile() as tmp:
-        command = f'echo "{test_str}" | valgrind --tool=callgrind --callgrind-out-file={tmp.name}\
+        command = f'valgrind --tool=callgrind --callgrind-out-file={tmp.name}\
         {binary_filename}'
         try:
-            with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE) as valout:
-                valout = valout.stderr.read()
+            with subprocess.Popen(command, shell=True,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT) as valout:
+                # valout = valout.stderr.read()
+                valout = valout.communicate(test_str.encode())[0]
                 valout = int(re.findall('Collected : \d+',
                                         valout.decode())[0][12:])
                 return valout

@@ -51,14 +51,13 @@ If we know the flag format in advance, we can save some time:
 If we know the length in advance as well, taCTF will use what we ask
 it to:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v -f sigpwny{ -l 13
+  ./tactf.py ./a.out -v -f sigpwny{ -l 14
 #+END_SRC
 
-#+HTML: <img src="./images/adv.png" align="left" width="300">
 Sometimes, we can guess the character set to reduce its size. In this
 case, we known the restriction is lowercase letters, so:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v -f sigpwny{ -l 13 -c 1
+  ./tactf.py ./a.out -v -f sigpwny{ -l 14 -c 1
 #+END_SRC
 
 *** Reverse Example: ELF-NoSoftwareBreakpoints
