@@ -31,7 +31,7 @@ ways to use taCTF, listed below.
 
 *** Simple Example
 
- #+HTML: <img src="./images/adv.png" align="right" width="300">
+ #+HTML: <img src="./images/adv.png" align="left" width="300">
 The examples are in the =test= directory.
 
 
