@@ -10,6 +10,7 @@ stored "secret" string by counting instructions.
 Python 3, Valgrind. No additional modules.
 
 ** Usage
+Clone this repository, then:
 
 #+BEGIN_SRC sh
   ./tactf.py binaryname -v
@@ -80,7 +81,7 @@ Punctuation is included by default in all sets.
 |    4 | Lowercase, digits            |
 
 
-** Errors
+** Troubleshooting
 
 If you get =Length guess: -1=, Valgrind is probably not installed, or
 isn't on your =$PATH=. Install it with:
@@ -89,6 +90,8 @@ isn't on your =$PATH=. Install it with:
   sudo pacman -S valgrind
 #+END_SRC
 Depending on your distribution.
+
+For any other problems: open an issue!
 
 
 ** Why not [[https://github.com/ChrisTheCoolHut/PinCTF][PinCTF]]?
@@ -114,5 +117,5 @@ Binaries that use an insecure string compare [[https://en.wikipedia.org/wiki/Tim
 ** TODO
 - Add some stats stuff to compute mean, see deviation, etc. to decide
   on best value to use in case instruction counts are close
-- Feature to (=--all=) compare valgrind and PIN counting: deal with
+- Feature add (=--all=) compare valgrind and PIN counting: deal with
   case of disagreement between PIN and valgrind.
