@@ -1,6 +1,6 @@
 * taCTF
 
-taCTF is a side-channel timing attack tool that uses [[https://valgrind.org/][Valgrind]]. It
+taCTF (tact-F) is a side-channel timing attack tool that uses [[https://valgrind.org/][Valgrind]]. It
 reverses binaries that expect a string input and compare it to a
 stored "secret" string by counting instructions.
 
