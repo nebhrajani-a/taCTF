@@ -4,6 +4,7 @@ taCTF is a side-channel timing attack tool that uses [[https://valgrind.org/][Va
 reverses binaries that expect a string input and compare it to a
 stored "secret" string by counting instructions.
 
+ #+HTML: <img src="./images/elf.png" align="right" width="300">
 ** Requirements
 
 Python 3, Valgrind. No additional modules.
@@ -17,7 +18,6 @@ Python 3, Valgrind. No additional modules.
 =-v= makes the output verbose (recommended). There are more complex
 ways to use taCTF, listed below.
 
- #+HTML: <img src="./images/elf.png" align="right" width="300">
 *** Arguments
 | Argument | Long Form       | Function                                    | Default |
 |----------+-----------------+---------------------------------------------+---------|
