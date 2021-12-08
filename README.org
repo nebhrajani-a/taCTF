@@ -1,0 +1,16 @@
+* Outline
+
+** Arguments
+| Argument | Long Form       | Function                                    |
+|----------+-----------------+---------------------------------------------|
+| =-v=     | =--verbose=     | Verbose output, with each iteration printed |
+| =-r=     | =--reverse=     | Try string backwards                        |
+| =-f=     | =--flag-format= | Known flag format to try                    |
+| =-l=     | =--length=      | Length to check till (normally auto)        |
+| =-c=     | =--charset=     | Which ASCII character 'set' to try.         |
+
+** Features
+- Add some stats stuff to compute mean, see deviation, etc. to decide
+  on best value to use in case instruction counts are close
+- Feature to (=--all=) compare valgrind and PIN counting: deal with
+  case of disagreement between PIN and valgrind.
