@@ -13,7 +13,7 @@ Python 3, Valgrind. No additional modules.
 Clone this repository, then:
 
 #+BEGIN_SRC sh
-  ./tactf.py binaryname -v
+  ./taCTF.py binaryname -v
 #+END_SRC
 
 =-v= makes the output verbose (recommended). There are more complex
@@ -37,7 +37,7 @@ The examples are in the =test= directory.
 
 =gcc test/example.c= to get =a.out=. Then, first try:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v
+  ./taCTF.py ./a.out -v
 #+END_SRC
 
 taCTF first tries to figure out the length by counting instructions.
@@ -45,19 +45,19 @@ It then bruteforces the string character by character, left to right.
 
 If we know the flag format in advance, we can save some time:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v -f sigpwny{
+  ./taCTF.py ./a.out -v -f sigpwny{
 #+END_SRC
 
 If we know the length in advance as well, taCTF will use what we ask
 it to:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v -f sigpwny{ -l 14
+  ./taCTF.py ./a.out -v -f sigpwny{ -l 14
 #+END_SRC
 
 Sometimes, we can guess the character set to reduce its size. In this
 case, we known the restriction is lowercase letters, so:
 #+BEGIN_SRC sh
-  ./tactf.py ./a.out -v -f sigpwny{ -l 14 -c 1
+  ./taCTF.py ./a.out -v -f sigpwny{ -l 14 -c 1
 #+END_SRC
 
 *** Reverse Example: ELF-NoSoftwareBreakpoints
@@ -65,7 +65,7 @@ case, we known the restriction is lowercase letters, so:
 To bruteforce the string right to left:
 
 #+BEGIN_SRC sh
-  ./tactf.py test/ELF-NoSoftwareBreakpoints -r -l 25
+  ./taCTF.py test/ELF-NoSoftwareBreakpoints -r -l 25
 #+END_SRC
 
 *** Character Set Codes

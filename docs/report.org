@@ -297,7 +297,7 @@ On a sandbox (Arch) Linux machine, all we need to do is:
   $ git clone https://github.com/nebhrajani-a/taCTF
   $ cd taCTF
   $ gcc test/example.c
-  $ ./tactf.py ./a.out
+  $ ./taCTF.py ./a.out
 #+END_SRC
 
 The output is:
@@ -322,7 +322,7 @@ sigpwny{flag}
 Maybe with some more options:
 
 #+BEGIN_SRC text
-$ ./tactf.py ./a.out --flag-format "sigpwny{" -l 13 -c 1
+$ ./taCTF.py ./a.out --flag-format "sigpwny{" -l 13 -c 1
 Length guess: 13
 sigpwny{faaaa
 sigpwny{flaaa
@@ -335,7 +335,7 @@ Let's also try some other binary that checks the string in reverse
 order:
 
 #+BEGIN_SRC text
-$ ./tactf.py test/ELF-NoSoftwareBreakpoints -r -l 25
+$ ./taCTF.py test/ELF-NoSoftwareBreakpoints -r -l 25
 Length guess: 25
 aaaaaaaaaaaaaaaaaaaaaaaaS
 aaaaaaaaaaaaaaaaaaaaaaakS
