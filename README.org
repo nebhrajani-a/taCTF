@@ -92,13 +92,6 @@ Depending on your distribution.
 
 For any other problems: open an issue!
 
-
-** Why not [[https://github.com/ChrisTheCoolHut/PinCTF][PinCTF]]?
-
-Installing Intel PIN is a pain, and running it even more so. I could
-never get PIN working reliably on anything but an Ubuntu VM, so this
-is a PinCTF equivalent written for Valgrind.
-
 ** When Does it Work?
 Binaries that use an insecure string compare [[https://en.wikipedia.org/wiki/Timing_attack#Algorithm][of the form]]:
 
